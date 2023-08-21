@@ -269,6 +269,7 @@ export interface IReview extends InstitutionId, Ids {
 }
 
 export interface IUser extends Document{
+    _id: string | string & ObjectId,
     name: string,
     email: string,
     status: "user" | "manager" | "admin",
@@ -281,8 +282,8 @@ export interface IUser extends Document{
     verifyCode: string,
     activationLink: string,
     allInstitutions: IObjectIdArray,
-    favoritePlaces: IObjectIdArray,
-    favoriteNews?: Schema.Types.ObjectId[],
+    favoritePlaces: string | string & ObjectId | Schema.Types.ObjectId,
+   favoriteNews?: Schema.Types.ObjectId[],
     myRatings: IObjectIdArray,
     blocked: {
         isBlocked: boolean,
@@ -296,7 +297,7 @@ export interface IUser extends Document{
 
 export interface IUserFavoritePlaces extends UserId, Document {
     _id: string | string & ObjectId,
-    places: Schema.Types.ObjectId[],
+    places: IObjectIdArray,
     createdAt?: Date,
     updatedAt?: Date,
 }
@@ -329,4 +330,13 @@ export interface CreateReserve {
     manager: string | string & ObjectId,
     user: string | string & ObjectId,
     eventType: string
+}
+
+export interface ICityForCount extends Document {
+    _id: string,
+    name_ua: string,
+    name_en: string,
+    url: string,
+    createdAt?: Date,
+    updatedAt?: Date,
 }

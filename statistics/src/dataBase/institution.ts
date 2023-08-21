@@ -1,7 +1,7 @@
 import {Schema, model, Model} from "mongoose";
 import {IInstitution} from "../interfaces/common";
 
-interface IInstitutionModel extends Model<IInstitution> {}
+export interface IInstitutionModel extends Model<IInstitution> {}
 const InstitutionSchema = new Schema({
     title: {
         type: String,
@@ -11,6 +11,9 @@ const InstitutionSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'views'
     },
+    mainPhoto: {
+        type: String
+    }, // прибрати
     pictures: [{
         name: {
             type: String
@@ -118,6 +121,7 @@ const InstitutionSchema = new Schema({
     }],
 }, {timestamps: true})
 
+// const Institution: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', InstitutionSchema);
 const Institution: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', InstitutionSchema);
 
 export {
