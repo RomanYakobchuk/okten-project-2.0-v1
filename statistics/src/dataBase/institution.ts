@@ -121,7 +121,7 @@ const InstitutionSchema = new Schema({
     }],
 }, {timestamps: true})
 
-// const Institution: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', InstitutionSchema);
+// const InstitutionSchema: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', InstitutionSchema);
 const Institution: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', InstitutionSchema);
 
 export {

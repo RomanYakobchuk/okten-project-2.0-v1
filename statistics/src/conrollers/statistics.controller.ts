@@ -46,7 +46,7 @@ class StatisticsController {
 
             const drafts = await InstitutionNews.countDocuments({"publishAt.isPublish": false});
             const published = await InstitutionNews.countDocuments({"publishAt.isPublish": true});
-            // const rejected = await InstitutionNews.countDocuments({ verify: 'rejected' });
+            // const rejected = await Institution_newsSchema.countDocuments({ verify: 'rejected' });
 
             res.status(200).json({
                 totalNews,
