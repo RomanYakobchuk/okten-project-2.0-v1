@@ -9,7 +9,7 @@ import {statisticsRouter} from "./routes";
 const app = express();
 
 app.use(cors({
-    origin: sanitizedConfig.CLIENT_URL
+    origin: [sanitizedConfig.CLIENT_URL, sanitizedConfig.API_URL]
 }))
 
 app.use(bodyParser.json());

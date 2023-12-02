@@ -3,16 +3,19 @@ import {IUserFavoritePlaces} from "../interfaces/common";
 import {IUserFavoritePlacesModel} from "../interfaces/model";
 
 
-
-const UserFavoritePlaces = new Schema<IUserFavoritePlaces>({
+const UserFavoritePlaces = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'user',
     },
-    places: [{
+    type: {
+        type: String,
+        enum: ['institution', 'institutionNews']
+    },
+    item: {
         type: Schema.Types.ObjectId,
-        ref: 'institution'
-    }]
+        refPath: 'type'
+    }
 }, {
     timestamps: true,
 });

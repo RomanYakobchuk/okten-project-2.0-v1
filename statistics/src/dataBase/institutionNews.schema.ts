@@ -2,20 +2,19 @@ import {Schema, model} from "mongoose";
 import {IInstitutionNews} from "../interfaces/common";
 import {IInstitutionNewsModel} from "../interfaces/model";
 
-const InstitutionNewsSchema = new Schema<IInstitutionNews>({
+const InstitutionNews = new Schema<IInstitutionNews>({
     institutionId: {
         type: Schema.Types.ObjectId,
         ref: 'institution',
-        required: true
+        required: true,
+        unique: true
     },
     title: {
         type: String,
         required: true
     },
     place: {
-        isPlace: Boolean,
         location: {
-            type: Object,
             lng: {
                 type: Number,
             },
@@ -23,13 +22,13 @@ const InstitutionNewsSchema = new Schema<IInstitutionNews>({
                 type: Number,
             }
         },
-        city: {
-            type: String,
-            required: true
-        },
-        address: {
-            type: String,
-            required: true
+        place: {
+            city: {
+                type: String,
+            },
+            address: {
+                type: String,
+            }
         }
     },
     publishAt: {
@@ -58,8 +57,6 @@ const InstitutionNewsSchema = new Schema<IInstitutionNews>({
         default: "general"
     },
     pictures: [{
-        type: Object,
-        required: true,
         url: {
             type: String
         },
@@ -82,8 +79,8 @@ const InstitutionNewsSchema = new Schema<IInstitutionNews>({
     },
 }, {timestamps: true});
 
-const InstitutionNews: IInstitutionNewsModel =model<IInstitutionNews, IInstitutionNewsModel>('institutionNews', InstitutionNewsSchema);
+const InstitutionNewsSchema: IInstitutionNewsModel = model<IInstitutionNews, IInstitutionNewsModel>('institutionNews', InstitutionNews);
 
 export {
-    InstitutionNews
+    InstitutionNewsSchema
 }

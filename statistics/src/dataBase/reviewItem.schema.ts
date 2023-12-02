@@ -1,10 +1,15 @@
 import {Schema, model} from "mongoose";
-import {IRating} from "../interfaces/common";
+import {IReviewItem} from "../interfaces/common";
 
-const RatingSchema = new Schema<IRating>({
+const ReviewItem = new Schema<IReviewItem>({
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "user"
+    },
+    text: {
+        type: Object,
+        like: String,
+        notLike: String
     },
     grade: {
         type: Number,
@@ -15,10 +20,10 @@ const RatingSchema = new Schema<IRating>({
         type: Schema.Types.ObjectId,
         ref: "institution"
     },
-}, {timestamps: true})
+}, {timestamps: true});
 
-const Rating = model('rating', RatingSchema)
+const ReviewItemSchema = model('reviewItem', ReviewItem);
 
 export {
-    Rating
+    ReviewItemSchema
 }

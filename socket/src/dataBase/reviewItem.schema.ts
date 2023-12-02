@@ -1,7 +1,7 @@
 import {Schema, model} from "mongoose";
 import {IReviewItem} from "../interfaces/common";
 
-const ReviewItemSchema = new Schema<IReviewItem>({
+const ReviewItem = new Schema<IReviewItem>({
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: "user"
@@ -20,14 +20,10 @@ const ReviewItemSchema = new Schema<IReviewItem>({
         type: Schema.Types.ObjectId,
         ref: "institution"
     },
-    review: {
-        type: Schema.Types.ObjectId,
-        ref: 'reviews'
-    }
 }, {timestamps: true});
 
-const ReviewItem = model('reviewItem', ReviewItemSchema);
+const ReviewItemSchema = model('reviewItem', ReviewItem);
 
 export {
-    ReviewItem
+    ReviewItemSchema
 }

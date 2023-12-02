@@ -1,10 +1,11 @@
 import {Schema, model} from "mongoose";
 import {IManager} from "../interfaces/common";
 
-const managerSchema = new Schema<IManager>({
+const manager = new Schema<IManager>({
     user: {
         type: Schema.Types.ObjectId,
-        ref: 'user'
+        ref: 'user',
+        unique: true
     },
     name: {
         type: String,
@@ -14,12 +15,14 @@ const managerSchema = new Schema<IManager>({
     email: {
         type: String,
         required: true,
-        default: ''
+        default: '',
+        unique: true
     },
     phone: {
         type: String,
         required: true,
-        default: ''
+        default: '',
+        unique: true
     },
     verify: {
         verifyBy: {
@@ -36,8 +39,8 @@ const managerSchema = new Schema<IManager>({
     }
 }, {timestamps: true});
 
-const Manager = model('manager', managerSchema);
+const ManagerSchema = model('manager', manager);
 
 export {
-    Manager
+    ManagerSchema
 }

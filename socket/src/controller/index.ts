@@ -1,5 +1,7 @@
-import messageController from "./message";
+import messageController from "./message.controller";
+import notificationController from "./notification.controller";
 
 export {
-    messageController
+    messageController,
+    notificationController
 }

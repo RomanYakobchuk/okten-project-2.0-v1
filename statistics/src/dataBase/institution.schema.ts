@@ -1,19 +1,16 @@
-import {Schema, model, Model} from "mongoose";
+import {Schema, model} from "mongoose";
 import {IInstitution} from "../interfaces/common";
+import {IInstitutionModel} from "../interfaces/model";
 
-export interface IInstitutionModel extends Model<IInstitution> {}
-const InstitutionSchema = new Schema({
+const Institution = new Schema({
     title: {
         type: String,
         required: true
     },
     views: {
         type: Schema.Types.ObjectId,
-        ref: 'views'
+        ref: 'views_container'
     },
-    mainPhoto: {
-        type: String
-    }, // прибрати
     pictures: [{
         name: {
             type: String
@@ -22,6 +19,10 @@ const InstitutionSchema = new Schema({
             type: String
         }
     }],
+    sendNotifications: {
+        type: Boolean,
+        default: false,
+    },
     workSchedule: {
         type: Object,
         required: true,
@@ -30,10 +31,10 @@ const InstitutionSchema = new Schema({
             days: {
                 type: Object,
                 from: {
-                    type: String
+                    type: Number
                 },
                 to: {
-                    type: String
+                    type: Number
                 },
             },
             time: {
@@ -110,6 +111,10 @@ const InstitutionSchema = new Schema({
             type: String
         },
     }],
+    reviewsLength: {
+        type: Number,
+        default: 0
+    },
     createdBy: {
         type: Schema.Types.ObjectId,
         ref: 'user',
@@ -119,11 +124,16 @@ const InstitutionSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'institutionNews',
     }],
-}, {timestamps: true})
+    freeSeats: {
+        type: Schema.Types.ObjectId,
+        ref: 'freeSeats',
+        unique: true
+    }
+}, {timestamps: true});
 
-// const InstitutionSchema: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', InstitutionSchema);
-const Institution: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', InstitutionSchema);
+
+const InstitutionSchema: IInstitutionModel = model<IInstitution, IInstitutionModel>('institution', Institution);
 
 export {
-    Institution
+    InstitutionSchema
 }

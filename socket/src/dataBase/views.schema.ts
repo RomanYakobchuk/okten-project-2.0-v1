@@ -1,4 +1,4 @@
-import {Model, model, Schema, Document} from "mongoose";
+    import {Model, model, Schema, Document} from "mongoose";
 import {IView, IViews} from "../interfaces/common";
 
 
@@ -6,7 +6,8 @@ const ViewSchema = new Schema<IView & Document>(
     {
         viewsId: {
             type: Schema.Types.ObjectId,
-            ref: 'views'
+            ref: 'views_container',
+            unique: true
         },
         user: {
             type: Schema.Types.ObjectId,
@@ -49,7 +50,7 @@ ViewsSchema.statics.getTopComponents = async function (limit: number) {
     return await this.find({verify: {$regex: new RegExp('published', "i")}}).sort({['viewsNumber']: -1}).limit(limit).exec();
 };
 const View = model<IView & Document>("view", ViewSchema);
-const Views: IViewsModel = model<IViews, IViewsModel>("views", ViewsSchema);
+const Views: IViewsModel = model<IViews, IViewsModel>("views_container", ViewsSchema);
 
 
 export {

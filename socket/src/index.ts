@@ -1,17 +1,21 @@
 import express, {NextFunction, Response, Request} from "express";
 import {createServer} from "http";
-import mongoose from "mongoose";
+import mongoose, {Schema} from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
 import {Server} from "socket.io";
-import sanitizedConfig from "./configs";
+import { instrument } from "@socket.io/admin-ui";
 
+
+import sanitizedConfig from "./configs";
 import {MessageModel as Message} from "./dataBase";
 
 import {removeUser, addUser, users, getUser} from "./io.service";
 import {messageController} from "./controller";
 import {ISocketUser} from "./interfaces/socket";
-import {IMessage} from "./interfaces/common";
+import {IMessage, INotification} from "./interfaces/common";
+import {createdNewReservation, newNotification} from "./const";
+import {NotificationRouter} from "./routes";
 
 require("dotenv").config({path: `../.env`});
 
@@ -30,17 +34,26 @@ app.use(function (req, res, next) {
 const io = new Server(server,
     {
         cors: {
-            origin: process.env.CLIENT_URL,
+            origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
+            credentials: true
         }
     }
 )
 io.on("connection", (socket) => {
-
+    console.log('|--------------------------------------------------');
+    console.log(`| New user by socket: ${socket.id}`)
     socket.on('addUser', (userId) => {
         addUser(userId, socket.id);
-        console.log(`A user connected by id: ${userId}`);
+        console.log(`| A user connected by id: ${userId}`);
         io.emit("getUsers", users);
     });
+
+    socket.on('updateListUsers', (role) => {
+        if (role === 'admin') {
+            io.emit("getUsers", users);
+        }
+    })
+    console.log('|--------------------------------------------------');
 // Прийняття події входу користувача в чат
     socket.on('joinChat', (chatId) => {
         socket.join(chatId);
@@ -104,7 +117,6 @@ io.on("connection", (socket) => {
 
     socket.on('delivered', async ({isDelivered, sender, message}) => {
         try {
-            console.log('delivered')
             const senderSocket = getUser(sender) as ISocketUser;
 
             io?.to(senderSocket?.socketId).emit('isDelivered', {
@@ -128,11 +140,23 @@ io.on("connection", (socket) => {
                 isError: true, // Передаємо стан "помилка" до клієнта
             });
         }
-    })
+    });
 
-    socket.on('typing', (isTyping, receiver) => {
+    socket.on('typing', (isTyping: boolean, receiver: string, chatId: string) => {
         const receiverSocket = getUser(receiver) as ISocketUser;
         io.to(receiverSocket?.socketId).emit('isTyping', {isTyping});
+    });
+
+    socket.on(createdNewReservation, async ({userId, notification}: { userId: string | Schema.Types.ObjectId, notification: INotification }) => {
+        try {
+            const senderSocket = getUser(userId as string) as ISocketUser;
+            if (senderSocket?.socketId) {
+                io.to(senderSocket?.socketId).emit(newNotification, notification);
+            }
+
+        } catch (e) {
+            console.log(e)
+        }
     });
 
     socket.on("disconnect", () => {
@@ -141,10 +165,15 @@ io.on("connection", (socket) => {
         io.emit('getUsers', users)
     });
 });
+instrument(io, {
+    auth: false,
+});
+app.use(`/socket.io/api/v1/notification`, NotificationRouter);
 
 app.use(cors(
     {
-        origin: sanitizedConfig.CLIENT_URL,
+        origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
+        credentials: true
     }
 ));
 app.use('*', (req, res) => {

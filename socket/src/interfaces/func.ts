@@ -1,16 +1,34 @@
 import {Request} from "express";
-import {IAnswerComment, ICapl, IComment, IInstitution, IInstitutionNews, IOauth, IUser} from "./common";
+import {
+    ICapl, ICityForCount,
+    IComment, IConversation,
+    IInstitution,
+    IInstitutionNews,
+    IOauth, ISubscribe,
+    IUser,
+    IUserFavoritePlaces
+} from "./common";
 import {UserModel} from "./model";
 
 export interface CustomRequest extends Request {
     user?: IUser | IOauth | UserModel,
-    data_info?: IInstitution | IInstitutionNews,
+    data_info?: IInstitution,
+    news?: IInstitutionNews,
     newStatus?: "admin" | "manager" | "user",
     tokenInfo?: IOauth,
+    subscribe?: ISubscribe | null,
+    subscribes?: {count: number, items: ISubscribe[]} | null,
     reservation?: ICapl,
+    conversation?: IConversation,
     comments?: IComment[]
-    comment?: IAnswerComment | IComment,
-    [key: string]: any,
+    comment?: IComment,
+    isAuth?: boolean,
     userExist?: IUser,
+    isAllowedNewReview?: boolean,
     files?: any,
+    cityForCount?: ICityForCount,
+    favPlaces?: {
+        items: IUserFavoritePlaces[],
+        count: number
+    }
 }
