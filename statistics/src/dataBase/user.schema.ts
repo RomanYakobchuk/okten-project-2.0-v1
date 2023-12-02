@@ -1,8 +1,8 @@
-import {Schema, model, Model} from "mongoose";
+import {Schema, model} from "mongoose";
 import {IUser} from "../interfaces/common";
 import {UserModel} from "../interfaces/model";
 
-const UserSchema = new Schema<IUser>({
+const User = new Schema<IUser>({
         name: {
             type: String,
             required: true,
@@ -16,19 +16,18 @@ const UserSchema = new Schema<IUser>({
         },
         status: {
             type: String,
-            default: 'user' //manager, admin
+            enum: ['user', 'admin', 'manger'],
+            default: 'user'
         },
         dOB: {
             type: Date,
-            required: true,
         },
         password: {
             type: String,
-            required: true
         },
         phone: {
             type: String,
-            required: true
+            unique: true
         },
         avatar: {
             type: String,
@@ -56,7 +55,8 @@ const UserSchema = new Schema<IUser>({
         ],
         favoritePlaces: {
             type: Schema.Types.ObjectId,
-            ref: "userFavoritePlaces"
+            ref: "userFavoritePlaces",
+            unique: true
         },
         favoriteNews: [
             {
@@ -70,6 +70,11 @@ const UserSchema = new Schema<IUser>({
                 ref: "rating"
             }
         ],
+        registerBy: {
+            type: String,
+            enum: ['Email', 'Google', 'Facebook'],
+            default: 'Email'
+        },
         blocked: {
             isBlocked: {
                 type: Boolean,
@@ -85,7 +90,7 @@ const UserSchema = new Schema<IUser>({
         timestamps: true
     }
 );
-const User: UserModel = model<IUser, UserModel>('user', UserSchema);
+const UserSchema: UserModel = model<IUser, UserModel>('user', User);
 export {
-    User
+    UserSchema
 };

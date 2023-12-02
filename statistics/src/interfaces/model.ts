@@ -5,25 +5,46 @@ import {
     IInstitutionNews,
     ICapl,
     IComment,
-    IAnswerComment,
     IMessage,
     IConversation,
-    ICityForCount
+    ICityForCount, ISubscribe, INotification, IInstitution, IFreeSeats, IOauth
 } from "./common";
 
-export interface IUserFavoritePlacesModel extends Model<IUserFavoritePlacesDoc>{}
+export interface IUserFavoritePlacesModel extends Model<IUserFavoritePlacesDoc> {
+}
 
-export interface UserModel extends Model<IUser>{}
+export interface UserModel extends Model<IUser> {
+}
 
-export interface IInstitutionNewsModel extends Model<IInstitutionNews> {}
+export interface IInstitutionModel extends Model<IInstitution> {
+}
 
-export interface ICaplModel extends Model<ICapl>{}
+export interface IFreeSeatsModel extends Model<IFreeSeats> {
+}
 
-export interface ICommentModel extends Model<IComment> {}
+export interface IInstitutionNewsModel extends Model<IInstitutionNews> {
+}
 
-export interface IAnswerCommentModel extends Model<IAnswerComment> {}
+export interface ICaplModel extends Model<ICapl> {
+}
 
-export interface IMessageModel extends Model<IMessage>{}
-export interface IConversationModel extends Model<IConversation>{}
+export interface ICommentModel extends Model<IComment> {
+}
 
-export interface ICityForCountModel extends Model<ICityForCount>{}
+export interface IMessageModel extends Model<IMessage> {
+}
+
+export interface IConversationModel extends Model<IConversation> {
+}
+
+export interface ICityForCountModel extends Model<ICityForCount> {
+}
+
+export interface ISubscribeModel extends Model<ISubscribe> {
+}
+
+export interface INotificationModel extends Model<INotification> {
+}
+
+export interface IOAuthModel extends Model<IOauth> {
+}

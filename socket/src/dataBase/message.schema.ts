@@ -2,10 +2,7 @@ import {Schema, model} from "mongoose";
 import {IMessage, IConversation} from "../interfaces/common";
 import {IConversationModel, IMessageModel} from "../interfaces/model";
 
-const ConversationSchema = new Schema({
-    userName: {
-        type: String
-    },
+const Conversation = new Schema({
     institutionId: {
         type: Schema.Types.ObjectId,
         ref: 'institution'
@@ -21,20 +18,23 @@ const ConversationSchema = new Schema({
             type: Date
         }
     },
+    type: {
+        type: String,
+        enum: ['group', 'reserve', 'oneToOne']
+    },
     members: [{
         user: Schema.Types.ObjectId,
         connectedAt: Date,
+        conversationTitle: String,
         role: String
     }],
-    institutionTitle: {
-        type: String
-    },
 }, {timestamps: true});
 
-const MessageSchema = new Schema({
+const Message = new Schema({
     conversationId: {
         type: Schema.Types.ObjectId,
-        ref: 'conversation'
+        ref: 'conversation',
+        unique: true
     },
     sender: {
         type: Schema.Types.ObjectId,
@@ -71,8 +71,8 @@ const MessageSchema = new Schema({
     },
 }, {timestamps: true});
 
-const ConversationModel: IConversationModel = model<IConversation, IConversationModel>('conversation', ConversationSchema);
-const MessageModel: IMessageModel = model<IMessage, IMessageModel>('message', MessageSchema);
+const ConversationModel: IConversationModel = model<IConversation, IConversationModel>('conversation', Conversation);
+const MessageModel: IMessageModel = model<IMessage, IMessageModel>('message', Message);
 
 export {
     ConversationModel,

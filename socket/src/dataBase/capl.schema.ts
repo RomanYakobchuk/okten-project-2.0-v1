@@ -2,7 +2,7 @@ import {Schema, model} from "mongoose";
 import {ICapl} from "../interfaces/common";
 import {ICaplModel} from "../interfaces/model";
 
-const CaplSchema = new Schema({
+const Capl = new Schema({
     user: {
         type: Schema.Types.ObjectId,
         ref: 'user',
@@ -47,7 +47,6 @@ const CaplSchema = new Schema({
         type: String
     },
     userStatus: {
-        type: Object,
         value: {
             type: String,
             default: 'accepted' // rejected | accepted
@@ -56,8 +55,11 @@ const CaplSchema = new Schema({
             type: String
         }
     },
+    isAllowedEdit: {
+        type: Boolean,
+        default: true
+    },
     institutionStatus: {
-        type: Object,
         value: {
             type: String,
             default: 'draft' // draft | rejected | accepted
@@ -73,12 +75,16 @@ const CaplSchema = new Schema({
     isActive: {
         type: Boolean,
         default: true
+    },
+    isClientAppeared: {
+        type: Boolean,
+        default: false
     }
 }, {timestamps: true});
 
 
-const Capl: ICaplModel = model<ICapl, ICaplModel>("capl", CaplSchema);
+const CaplSchema: ICaplModel = model<ICapl, ICaplModel>("capl", Capl);
 
 export {
-    Capl
+    CaplSchema
 }

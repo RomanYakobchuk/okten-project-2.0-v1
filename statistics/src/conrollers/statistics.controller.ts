@@ -1,14 +1,20 @@
 import {NextFunction, Response} from "express";
 
 import {CustomRequest} from "../interfaces/func";
-import {Institution, InstitutionNews, User, Admin, Manager} from "../dataBase";
+import {InstitutionSchema as Institution, InstitutionNewsSchema as InstitutionNews, UserSchema as User, AdminSchema as Admin, ManagerSchema as Manager} from "../dataBase";
 
 class StatisticsController {
+
+    constructor() {
+        this.institutionsStatistics = this.institutionsStatistics.bind(this);
+        this.newsStatistics = this.newsStatistics.bind(this);
+        this.usersStatistics = this.usersStatistics.bind(this);
+    }
     async institutionsStatistics(req: CustomRequest, res: Response, next: NextFunction) {
         try {
-            const totalInstitutions = await Institution.countDocuments();
+            const totalEstablishment = await Institution.countDocuments();
 
-            if (!totalInstitutions) {
+            if (!totalEstablishment) {
                 return res.status(200).json([])
             }
             const lastMonth = new Date();
@@ -21,7 +27,7 @@ class StatisticsController {
             const rejected = await Institution.countDocuments({verify: 'rejected'});
 
             res.status(200).json({
-                totalInstitutions,
+                totalEstablishment,
                 createdInLastMonth,
                 drafts,
                 published,
@@ -44,8 +50,8 @@ class StatisticsController {
 
             const createdInLastMonth = await InstitutionNews.countDocuments({createdAt: {$gte: lastMonth}});
 
-            const drafts = await InstitutionNews.countDocuments({"publishAt.isPublish": false});
-            const published = await InstitutionNews.countDocuments({"publishAt.isPublish": true});
+            const drafts = await InstitutionNews.countDocuments({status: "draft"});
+            const published = await InstitutionNews.countDocuments({status: "published"});
             // const rejected = await Institution_newsSchema.countDocuments({ verify: 'rejected' });
 
             res.status(200).json({
@@ -67,8 +73,8 @@ class StatisticsController {
 
             const total = await User.countDocuments();
             const totalUsers = await User.countDocuments({status: 'user'});
-            const totalAdmins = await Admin.countDocuments({status: 'admin'});
-            const totalManagers = await Manager.countDocuments({status: 'manager'});
+            const totalAdmins = await Admin.countDocuments();
+            const totalManagers = await Manager.countDocuments({'verify.isVerify': true});
 
             const usersInLastMonth = await User.countDocuments({createdAt: {$gte: lastMonth}});
 
