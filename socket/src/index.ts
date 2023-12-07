@@ -14,10 +14,11 @@ import {removeUser, addUser, users, getUser} from "./io.service";
 import {messageController} from "./controller";
 import {ISocketUser} from "./interfaces/socket";
 import {IMessage, INotification} from "./interfaces/common";
-import {createdNewReservation, newNotification} from "./const";
+import {createdNewNotification, newNotification} from "./const";
 import {NotificationRouter} from "./routes";
 
-require("dotenv").config({path: `../.env`});
+import dotenv from  "dotenv";
+dotenv.config({path: `../.env`});
 
 const app = express();
 const server = createServer(app);
@@ -30,15 +31,21 @@ app.use(function (req, res, next) {
     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
     next();
 })
-
+app.use(cors(
+    {
+        origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
+    }
+));
 const io = new Server(server,
     {
         cors: {
             origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
-            credentials: true
         }
     }
 )
+app.use('/socket/api/v1/server', (_, res) => res.json('Server work'))
+app.use(`/socket/api/v1/notification`, NotificationRouter);
+
 io.on("connection", (socket) => {
     console.log('|--------------------------------------------------');
     console.log(`| New user by socket: ${socket.id}`)
@@ -147,7 +154,7 @@ io.on("connection", (socket) => {
         io.to(receiverSocket?.socketId).emit('isTyping', {isTyping});
     });
 
-    socket.on(createdNewReservation, async ({userId, notification}: { userId: string | Schema.Types.ObjectId, notification: INotification }) => {
+    socket.on(createdNewNotification, async ({userId, notification}: { userId: string | Schema.Types.ObjectId, notification: INotification }) => {
         try {
             const senderSocket = getUser(userId as string) as ISocketUser;
             if (senderSocket?.socketId) {
@@ -168,14 +175,7 @@ io.on("connection", (socket) => {
 instrument(io, {
     auth: false,
 });
-app.use(`/socket.io/api/v1/notification`, NotificationRouter);
 
-app.use(cors(
-    {
-        origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
-        credentials: true
-    }
-));
 app.use('*', (req, res) => {
     res.status(404).json('Route not found');
 });

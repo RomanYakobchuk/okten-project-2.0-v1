@@ -3,7 +3,7 @@ import {
     ICapl, ICityForCount,
     IComment, IConversation,
     IInstitution,
-    IInstitutionNews,
+    IInstitutionNews, INotification,
     IOauth, ISubscribe,
     IUser,
     IUserFavoritePlaces
@@ -30,5 +30,6 @@ export interface CustomRequest extends Request {
     favPlaces?: {
         items: IUserFavoritePlaces[],
         count: number
-    }
+    },
+    notification?: INotification
 }

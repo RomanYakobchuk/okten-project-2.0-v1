@@ -17,6 +17,10 @@ const NotificationSchema = new Schema({
             ref: 'user'
         }
     },
+    isDelete: {
+        type: Boolean,
+        default: false
+    },
     status: {
         type: String,
         enum: ["usual", "accepted", "rejected"],

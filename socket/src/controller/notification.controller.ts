@@ -24,7 +24,8 @@ class NotificationController {
                 message: message,
                 description: description,
                 forUser: forUser,
-                status: status as INotification['status']
+                status: status as INotification['status'],
+                isDelete: false
             });
             res.status(200).json(notification);
         } catch (e) {

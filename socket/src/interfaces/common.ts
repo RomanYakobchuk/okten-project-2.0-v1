@@ -42,12 +42,7 @@ export interface ICapl extends Document {
     },
     institutionStatus: {
         value: "accepted" | "rejected" | "draft",
-        freeDateFor: [
-            {
-                day: Date,
-                time: Date
-            }
-        ],
+        freeDateFor: [Date],
         reasonRefusal: string
     },
     isActive: boolean,
@@ -404,11 +399,14 @@ export interface INotification extends UserId, Document {
     updatedAt?: Date,
     message: string,
     description?: string,
+    isDelete: boolean,
     isRead: boolean,
     status: "usual" | "accepted" | "rejected",
     forUser: {
         role: 'manager' | 'admin' | 'user',
         userId: string | string & ObjectId,
     },
-    type: "newReservation" | "newMessage" | "newNews" |"newFunctional" | "newEstablishment"
+    type: "newReservation" | "newMessage" | "newNews" |"newFunctional" | "newEstablishment" | "newUser"
 }
+
+export type TTypeNotification = ICapl | IMessage | IInstitutionNews | IInstitution | IUser
