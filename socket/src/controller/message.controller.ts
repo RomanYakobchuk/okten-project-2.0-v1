@@ -1,15 +1,35 @@
-import {MessageModel as Message} from "../dataBase";
-import {IConversation} from "../interfaces/common";
+import {NextFunction, Response} from "express";
 import {ObjectId} from "mongoose";
 
+import {MessageModel as Message, ConversationModel} from "../dataBase";
+import {CustomRequest} from "../interfaces/func";
+
 class MessageController {
+    constructor() {
+        this.createMessageWithFile = this.createMessageWithFile.bind(this);
+        this.createMessage = this.createMessage.bind(this);
+    }
+    async createMessageWithFile(req: CustomRequest, res: Response, next: NextFunction) {
+        const files = req.files?.files;
+        try {
+            const newFiles = [];
+
+            if (files?.name) {
+                const {url} = {url: ''};
+            }
+            console.log('req.body: ', req.body)
+            console.log('req.files: ', req.files)
+            res.status(200).json({message: 'Success'})
+        } catch (e) {
+            next(e);
+        }
+    }
     createMessage = async (sender: ObjectId | string, receiver: string, text: string, chatId: string, replyTo: ObjectId | string, createdAt: Date) => {
         try {
-            const chat = await Message.findById(chatId) as IConversation;
+            const chat = await ConversationModel.findOne({_id: chatId});
             if (!chat) {
                 throw new Error("Chat not found");
             }
-
             const message = await Message.create({
                 conversationId: chatId,
                 sender,
@@ -31,7 +51,7 @@ class MessageController {
                 status: 'sent',
                 updatedAt: new Date()
             };
-            await chat.save({});
+            await chat.save();
 
             return message?._id;
         } catch (e) {

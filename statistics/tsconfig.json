@@ -12,8 +12,8 @@
     "strict": true,
     "sourceMap": true,
     "resolveJsonModule": true,
-    "typeRoots": ["./global.d.ts", "./node_modules/@types"]
+    "typeRoots": ["./global.d.ts", "./node_modules/@types", "../common/**/*"]
   },
-  "include": ["src/**/*", "../app/server/src/dataBase"],
+  "include": ["src/**/*", "../app/server/src/dataBase", "../common/**/*"],
   "exclude": ["node_modules", "../app/server/src/dataBase"]
 }

@@ -1,4 +1,5 @@
-import express, {NextFunction, Response, Request} from "express";
+import express, {NextFunction, Response} from "express";
+import expressFileUpload from  'express-fileupload';
 import {createServer} from "http";
 import mongoose, {Schema} from "mongoose";
 import cors from "cors";
@@ -15,9 +16,10 @@ import {messageController} from "./controller";
 import {ISocketUser} from "./interfaces/socket";
 import {IMessage, INotification} from "./interfaces/common";
 import {createdNewNotification, newNotification} from "./const";
-import {NotificationRouter} from "./routes";
+import {MessageRouter, NotificationRouter} from "./routes";
 
 import dotenv from  "dotenv";
+import {CustomRequest} from "./interfaces/func";
 dotenv.config({path: `../.env`});
 
 const app = express();
@@ -36,6 +38,10 @@ app.use(cors(
         origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
     }
 ));
+app.use(expressFileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/'
+}));
 const io = new Server(server,
     {
         cors: {
@@ -45,6 +51,7 @@ const io = new Server(server,
 )
 app.use('/socket/api/v1/server', (_, res) => res.json('Server work'))
 app.use(`/socket/api/v1/notification`, NotificationRouter);
+app.use(`/socket/api/v1/message`, MessageRouter);
 
 io.on("connection", (socket) => {
     console.log('|--------------------------------------------------');
@@ -64,18 +71,23 @@ io.on("connection", (socket) => {
 // Прийняття події входу користувача в чат
     socket.on('joinChat', (chatId) => {
         socket.join(chatId);
+        console.log(`----Chat joined----[${chatId}]`)
     });
+
+    socket.on('sendFile', (data) => {
+        console.log(data)
+    })
 
     socket.on("sendMessage", async ({sender, receiver, text, chatId, replyTo, createdAt}) => {
         try {
             const _id = await messageController.createMessage(sender, receiver, text, chatId, replyTo, createdAt);
 
-            const receiverSocket = getUser(receiver) as ISocketUser;
+            // const receiverSocket = getUser(receiver) as ISocketUser;
             const senderSocket = getUser(sender) as ISocketUser;
             io.to(chatId).emit("getMessage", {
                 sender,
                 chatId,
-                receiver,
+                // receiver,
                 text,
                 createdAt,
                 _id,
@@ -84,19 +96,20 @@ io.on("connection", (socket) => {
                 isDelivered: false,
                 isRead: false
             });
-            io.to(chatId).emit("isSent", {
-                sender,
-                chatId,
-                receiver,
-                text,
-                createdAt,
-                _id,
-                isSent: true,
-                isError: false,
-                isDelivered: false,
-                isRead: false
-            });
-            io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getLastMessage", {
+            // io.to(chatId).emit("isSent", {
+            //     sender,
+            //     chatId,
+            //     receiver,
+            //     text,
+            //     createdAt,
+            //     _id,
+            //     isSent: true,
+            //     isError: false,
+            //     isDelivered: false,
+            //     isRead: false
+            // });
+            // io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getLastMessage", {
+            io.to(chatId).emit("getLastMessage", {
                 sender,
                 chatId,
                 text,
@@ -180,7 +193,7 @@ app.use('*', (req, res) => {
     res.status(404).json('Route not found');
 });
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: any, req: CustomRequest, res: Response, next: NextFunction) => {
     console.log(err)
     res
         ?.status(err?.status || 500)
