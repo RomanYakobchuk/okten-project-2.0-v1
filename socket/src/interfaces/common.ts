@@ -42,12 +42,7 @@ export interface ICapl extends Document {
     },
     institutionStatus: {
         value: "accepted" | "rejected" | "draft",
-        freeDateFor: [
-            {
-                day: Date,
-                time: Date
-            }
-        ],
+        freeDateFor: [Date],
         reasonRefusal: string
     },
     isActive: boolean,
@@ -238,19 +233,31 @@ export interface ILastConvMessage {
     updatedAt: Date
 }
 
-export interface IConvMembers {
-    user: Schema.Types.ObjectId,
+export interface IConvMembers extends DocumentResultConversation<IConvMembers>{
+    user: Schema.Types.ObjectId | IUser,
     connectedAt: Date,
-    role: "admin" | "manager" | "user"
+    indicator?: null | string,
+    role: "admin" | "manager" | "user",
+    conversationTitle: string
 }
-
-export interface IConversation extends InstitutionId, Document {
+export interface DocumentResultConversation<T> {
+    _doc: T;
+}
+export interface IConversation extends Document, DocumentResultConversation<IConversation> {
     _id: string | string & ObjectId,
-    userName: string,
     lastMessage: ILastConvMessage,
-    institutionTitle: string,
     members: IConvMembers[],
-    institutionId: Schema.Types.ObjectId,
+    chatInfo: {
+        status: "public" | "private",
+        type: "group" | "oneByOne",
+        field: {
+            name: "institution" | "user" | "capl",
+            id: IInstitution | IUser | ICapl | (ObjectId | string)
+        },
+        chatName: string,
+        picture: string,
+        creator: ObjectId | string
+    },
     createdAt?: Date,
     updatedAt?: Date
 }
@@ -263,6 +270,7 @@ export interface IMessage extends Document {
     replyTo: Schema.Types.ObjectId,
     pictures: string[],
     text: string,
+    files?: IPicture[],
     isSent: boolean,
     isDelivered: boolean,
     isRead: boolean,
@@ -293,13 +301,17 @@ export interface IReview extends InstitutionId, Ids {
     reviews: Schema.Types.ObjectId[],
 }
 
-export interface IUser extends Document {
+export interface IUser extends Document, DocumentResultConversation<IUser> {
     name: string,
     email: string,
     status: "user" | "manager" | "admin",
     dOB: Date,
     registerBy: "Google" | "Email" | "GitHub" | "Facebook",
     password: string,
+    uniqueIndicator: {
+        value: string,
+        type: "public" | "private"
+    },
     phone: string,
     avatar: string,
     isActivated: boolean,
@@ -404,11 +416,14 @@ export interface INotification extends UserId, Document {
     updatedAt?: Date,
     message: string,
     description?: string,
+    isDelete: boolean,
     isRead: boolean,
     status: "usual" | "accepted" | "rejected",
     forUser: {
         role: 'manager' | 'admin' | 'user',
         userId: string | string & ObjectId,
     },
-    type: "newReservation" | "newMessage" | "newNews" |"newFunctional" | "newEstablishment"
+    type: "newReservation" | "newMessage" | "newNews" |"newFunctional" | "newEstablishment" | "newUser"
 }
+
+export type TTypeNotification = ICapl | IMessage | IInstitutionNews | IInstitution | IUser

@@ -14,9 +14,20 @@ const User = new Schema<IUser>({
             trim: true,
             lowercase: true
         },
+        uniqueIndicator: {
+            value: {
+                type: String,
+                unique: true,
+                required: false
+            },
+            type: {
+                type: String,
+                enum: ["public", "private"]
+            }
+        },
         status: {
             type: String,
-            enum: ['user', 'admin', 'manger'],
+            enum: ['user', 'admin', 'manager'],
             default: 'user'
         },
         dOB: {

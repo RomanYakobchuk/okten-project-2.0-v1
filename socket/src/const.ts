@@ -1,4 +1,5 @@
 const createdNewReservation = 'createdNewReservation';
+const createdNewNotification = 'createNewNotification';
 const addedNewReservation = 'addedNewReservation';
 const newMessage = 'newMessage';
 const newNews = 'newNews';
@@ -9,5 +10,6 @@ export {
     newMessage,
     createdNewReservation,
     addedNewReservation,
-    newNotification
+    newNotification,
+    createdNewNotification
 }

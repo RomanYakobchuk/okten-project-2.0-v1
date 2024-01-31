@@ -1,10 +1,11 @@
-import express, {NextFunction, Response, Request} from "express";
+import express, {NextFunction, Response} from "express";
+import expressFileUpload from 'express-fileupload';
 import {createServer} from "http";
 import mongoose, {Schema} from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
 import {Server} from "socket.io";
-import { instrument } from "@socket.io/admin-ui";
+import {instrument} from "@socket.io/admin-ui";
 
 
 import sanitizedConfig from "./configs";
@@ -14,10 +15,13 @@ import {removeUser, addUser, users, getUser} from "./io.service";
 import {messageController} from "./controller";
 import {ISocketUser} from "./interfaces/socket";
 import {IMessage, INotification} from "./interfaces/common";
-import {createdNewReservation, newNotification} from "./const";
-import {NotificationRouter} from "./routes";
+import {createdNewNotification, newNotification} from "./const";
+import {MessageRouter, NotificationRouter} from "./routes";
 
-require("dotenv").config({path: `../.env`});
+import dotenv from "dotenv";
+import {CustomRequest} from "./interfaces/func";
+
+dotenv.config({path: `../.env`});
 
 const app = express();
 const server = createServer(app);
@@ -30,15 +34,26 @@ app.use(function (req, res, next) {
     res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
     next();
 })
-
+app.use(cors(
+    {
+        origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
+    }
+));
+app.use(expressFileUpload({
+    useTempFiles: true,
+    tempFileDir: '/tmp/'
+}));
 const io = new Server(server,
     {
         cors: {
             origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
-            credentials: true
         }
     }
 )
+app.use('/socket/api/v1/server', (_, res) => res.json('Server work'))
+app.use(`/socket/api/v1/notification`, NotificationRouter);
+app.use(`/socket/api/v1/message`, MessageRouter);
+
 io.on("connection", (socket) => {
     console.log('|--------------------------------------------------');
     console.log(`| New user by socket: ${socket.id}`)
@@ -57,43 +72,21 @@ io.on("connection", (socket) => {
 // Прийняття події входу користувача в чат
     socket.on('joinChat', (chatId) => {
         socket.join(chatId);
+        console.log(`----Chat joined----[${chatId}]`)
     });
 
-    socket.on("sendMessage", async ({sender, receiver, text, chatId, replyTo, createdAt}) => {
-        try {
-            const _id = await messageController.createMessage(sender, receiver, text, chatId, replyTo, createdAt);
+    socket.on('sendFile', (data) => {
+        console.log(data)
+    })
 
-            const receiverSocket = getUser(receiver) as ISocketUser;
-            const senderSocket = getUser(sender) as ISocketUser;
-            io.to(chatId).emit("getMessage", {
-                sender,
-                chatId,
-                receiver,
-                text,
-                createdAt,
-                _id,
-                isSent: true,
-                isError: false,
-                isDelivered: false,
-                isRead: false
-            });
-            io.to(chatId).emit("isSent", {
-                sender,
-                chatId,
-                receiver,
-                text,
-                createdAt,
-                _id,
-                isSent: true,
-                isError: false,
-                isDelivered: false,
-                isRead: false
-            });
-            io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getLastMessage", {
+    socket.on("sendMessage", async ({sender, receivers, text, chatId, replyTo, createdAt}) => {
+        try {
+            const _id = await messageController.createMessage(sender, text, chatId, replyTo, createdAt);
+
+            const lastMessage = {
                 sender,
                 chatId,
                 text,
-                receiver,
                 createdAt,
                 updatedAt: new Date(),
                 _id,
@@ -101,17 +94,50 @@ io.on("connection", (socket) => {
                 isError: false,
                 isDelivered: false,
                 isRead: false
-            });
-        } catch (e) {
-            console.error('Failed to send message: ', e)
-            const receiverSocket = getUser(receiver) as ISocketUser;
+            }
             const senderSocket = getUser(sender) as ISocketUser;
-            io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getMessage", {
+            for (const receiver of receivers) {
+                const receiverSocket = getUser(receiver) as ISocketUser;
+                if (receiverSocket?.socketId && senderSocket?.socketId)
+                io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getLastMessage", {
+                    ...lastMessage
+                })
+            }
+            io.to(chatId).emit("getMessage", {
                 sender,
                 chatId,
+                // receiver,
                 text,
-                isError: true, // Передаємо стан "помилка" до клієнта
+                createdAt,
+                _id,
+                isSent: true,
+                isError: false,
+                isDelivered: false,
+                isRead: false
             });
+            // io.to(chatId).emit("isSent", {
+            //     sender,
+            //     chatId,
+            //     receiver,
+            //     text,
+            //     createdAt,
+            //     _id,
+            //     isSent: true,
+            //     isError: false,
+            //     isDelivered: false,
+            //     isRead: false
+            // });
+            io.to(chatId).emit("getLastMessage", lastMessage);
+        } catch (e) {
+            console.error('Failed to send message: ', e)
+            // const receiverSocket = getUser(receiver) as ISocketUser;
+            // const senderSocket = getUser(sender) as ISocketUser;
+            // io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getMessage", {
+            //     sender,
+            //     chatId,
+            //     text,
+            //     isError: true, // Передаємо стан "помилка" до клієнта
+            // });
         }
     });
 
@@ -147,7 +173,10 @@ io.on("connection", (socket) => {
         io.to(receiverSocket?.socketId).emit('isTyping', {isTyping});
     });
 
-    socket.on(createdNewReservation, async ({userId, notification}: { userId: string | Schema.Types.ObjectId, notification: INotification }) => {
+    socket.on(createdNewNotification, async ({userId, notification}: {
+        userId: string | Schema.Types.ObjectId,
+        notification: INotification
+    }) => {
         try {
             const senderSocket = getUser(userId as string) as ISocketUser;
             if (senderSocket?.socketId) {
@@ -168,19 +197,12 @@ io.on("connection", (socket) => {
 instrument(io, {
     auth: false,
 });
-app.use(`/socket.io/api/v1/notification`, NotificationRouter);
 
-app.use(cors(
-    {
-        origin: [sanitizedConfig.CLIENT_URL, "https://admin.socket.io"],
-        credentials: true
-    }
-));
 app.use('*', (req, res) => {
     res.status(404).json('Route not found');
 });
 
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: any, req: CustomRequest, res: Response, next: NextFunction) => {
     console.log(err)
     res
         ?.status(err?.status || 500)
