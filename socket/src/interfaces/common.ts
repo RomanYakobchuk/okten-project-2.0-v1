@@ -270,12 +270,7 @@ export interface IMessage extends Document {
     replyTo: Schema.Types.ObjectId,
     pictures: string[],
     text: string,
-    files?: [
-        {
-            type: string,
-            url: string
-        }
-    ],
+    files?: IPicture[],
     isSent: boolean,
     isDelivered: boolean,
     isRead: boolean,

@@ -24,7 +24,7 @@ class MessageController {
             next(e);
         }
     }
-    createMessage = async (sender: ObjectId | string, receiver: string, text: string, chatId: string, replyTo: ObjectId | string, createdAt: Date) => {
+    createMessage = async (sender: ObjectId | string, text: string, chatId: string, replyTo: ObjectId | string, createdAt: Date) => {
         try {
             const chat = await ConversationModel.findOne({_id: chatId});
             if (!chat) {

@@ -1,11 +1,11 @@
 import express, {NextFunction, Response} from "express";
-import expressFileUpload from  'express-fileupload';
+import expressFileUpload from 'express-fileupload';
 import {createServer} from "http";
 import mongoose, {Schema} from "mongoose";
 import cors from "cors";
 import bodyParser from "body-parser";
 import {Server} from "socket.io";
-import { instrument } from "@socket.io/admin-ui";
+import {instrument} from "@socket.io/admin-ui";
 
 
 import sanitizedConfig from "./configs";
@@ -18,8 +18,9 @@ import {IMessage, INotification} from "./interfaces/common";
 import {createdNewNotification, newNotification} from "./const";
 import {MessageRouter, NotificationRouter} from "./routes";
 
-import dotenv from  "dotenv";
+import dotenv from "dotenv";
 import {CustomRequest} from "./interfaces/func";
+
 dotenv.config({path: `../.env`});
 
 const app = express();
@@ -78,12 +79,30 @@ io.on("connection", (socket) => {
         console.log(data)
     })
 
-    socket.on("sendMessage", async ({sender, receiver, text, chatId, replyTo, createdAt}) => {
+    socket.on("sendMessage", async ({sender, receivers, text, chatId, replyTo, createdAt}) => {
         try {
-            const _id = await messageController.createMessage(sender, receiver, text, chatId, replyTo, createdAt);
+            const _id = await messageController.createMessage(sender, text, chatId, replyTo, createdAt);
 
-            // const receiverSocket = getUser(receiver) as ISocketUser;
+            const lastMessage = {
+                sender,
+                chatId,
+                text,
+                createdAt,
+                updatedAt: new Date(),
+                _id,
+                isSent: true,
+                isError: false,
+                isDelivered: false,
+                isRead: false
+            }
             const senderSocket = getUser(sender) as ISocketUser;
+            for (const receiver of receivers) {
+                const receiverSocket = getUser(receiver) as ISocketUser;
+                if (receiverSocket?.socketId && senderSocket?.socketId)
+                io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getLastMessage", {
+                    ...lastMessage
+                })
+            }
             io.to(chatId).emit("getMessage", {
                 sender,
                 chatId,
@@ -108,30 +127,17 @@ io.on("connection", (socket) => {
             //     isDelivered: false,
             //     isRead: false
             // });
-            // io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getLastMessage", {
-            io.to(chatId).emit("getLastMessage", {
-                sender,
-                chatId,
-                text,
-                receiver,
-                createdAt,
-                updatedAt: new Date(),
-                _id,
-                isSent: true,
-                isError: false,
-                isDelivered: false,
-                isRead: false
-            });
+            io.to(chatId).emit("getLastMessage", lastMessage);
         } catch (e) {
             console.error('Failed to send message: ', e)
-            const receiverSocket = getUser(receiver) as ISocketUser;
-            const senderSocket = getUser(sender) as ISocketUser;
-            io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getMessage", {
-                sender,
-                chatId,
-                text,
-                isError: true, // Передаємо стан "помилка" до клієнта
-            });
+            // const receiverSocket = getUser(receiver) as ISocketUser;
+            // const senderSocket = getUser(sender) as ISocketUser;
+            // io.to([receiverSocket?.socketId, senderSocket?.socketId]).emit("getMessage", {
+            //     sender,
+            //     chatId,
+            //     text,
+            //     isError: true, // Передаємо стан "помилка" до клієнта
+            // });
         }
     });
 
@@ -167,7 +173,10 @@ io.on("connection", (socket) => {
         io.to(receiverSocket?.socketId).emit('isTyping', {isTyping});
     });
 
-    socket.on(createdNewNotification, async ({userId, notification}: { userId: string | Schema.Types.ObjectId, notification: INotification }) => {
+    socket.on(createdNewNotification, async ({userId, notification}: {
+        userId: string | Schema.Types.ObjectId,
+        notification: INotification
+    }) => {
         try {
             const senderSocket = getUser(userId as string) as ISocketUser;
             if (senderSocket?.socketId) {

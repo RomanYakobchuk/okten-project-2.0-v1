@@ -8,8 +8,12 @@ let users: ISocketUser[] = [];
 let institutions = new Map();
 
 const addUser = (userId: string, socketId: string) => {
-    !users.some(user => user.userId === userId) &&
-    users.push({userId, socketId});
+    if (!users.some(user => user.userId === userId)) {
+        users?.filter((user) => user?.userId !== userId);
+        users.push({userId, socketId});
+    } else {
+        users.push({userId, socketId});
+    }
 };
 
 const addInstitution = (institutionId = '', socketId: string) => {

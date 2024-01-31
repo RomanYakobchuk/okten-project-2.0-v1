@@ -86,7 +86,7 @@ const Message = new Schema({
     },
     files: [
         {
-            type: {
+            name: {
                 type: String
             },
             url: {
